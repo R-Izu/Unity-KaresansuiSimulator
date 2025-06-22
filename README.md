@@ -17,12 +17,12 @@
 Visual StudioでC#スクリプトで作成する・\
 開発環境は以下の通り\
 
-- PC
+- PC\
 | OS  | Windows 11                    |
 | CPU | Intel(R) Core(TM) i7-7700K    |
 | GPU | NVIDIA GeForce RTX 2070 SUPER |
 | CPU | Intel(R) Core(TM) i7-14700F   |
 | RAM | 64.0 GB                       |
 
-- Software
+- Software\
 | Unity | 2022.3.26f1 (64bit) | 
