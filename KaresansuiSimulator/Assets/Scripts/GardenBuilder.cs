@@ -1,30 +1,31 @@
-// GardenBuilder.cs
+// GardenBuilder.cs - 修正版
 using UnityEngine;
-using System.Collections.Generic; // Listを使用するために必要
+using System.Collections.Generic;
+using System.Diagnostics;
 
 public class GardenBuilder : MonoBehaviour
 {
     [System.Serializable]
     public class GardenComponent
     {
-        public string name; // UIなどで表示するコンポーネント名
-        public GameObject prefab; // 配置するプレハブ
-        public int maxCount = 10; // 配置可能な最大数 (Inspectorで設定)
-        [HideInInspector] public int currentCount = 0; // 現在配置されている数 (内部用)
+        public string name;
+        public GameObject prefab;
+        public int maxCount = 10;
+        [HideInInspector] public int currentCount = 0;
     }
 
     [Header("Garden Components")]
-    public List<GardenComponent> gardenComponents; // 配置可能なコンポーネントのリスト
+    public List<GardenComponent> gardenComponents;
 
     [Header("Placement Settings")]
-    public LayerMask placementLayer; // 配置可能な地面のレイヤー (例: "Ground")
-    public Transform parentObjectForComponents; // 配置されたコンポーネントの親となるオブジェクト
+    public LayerMask placementLayer;
+    public Transform parentObjectForComponents;
 
-    private GardenComponent _selectedComponent; // 現在選択されているコンポーネント
+    private GardenComponent _selectedComponent;
 
     void Start()
     {
-        // 初期選択コンポーネントを設定 (例: リストの最初の要素)
+        // 初期選択コンポーネントを設定
         if (gardenComponents.Count > 0)
         {
             SetSelectedComponent(0);
@@ -35,28 +36,52 @@ public class GardenBuilder : MonoBehaviour
         {
             GameObject parentGO = new GameObject("GardenElements");
             parentObjectForComponents = parentGO.transform;
-            Debug.Log("Parent object 'GardenElements' created for components.");
+            UnityEngine.Debug.Log("Parent object 'GardenElements' created for components.");
         }
     }
 
     void Update()
     {
-        // マウスの左クリックでオブジェクトを配置
-        if (Input.GetMouseButtonDown(0))
-        {
-            PlaceSelectedComponent();
-        }
+        // GameManagerがアクティブでない場合は処理を停止
+        if (!IsActiveMode()) return;
 
-        // キーボード入力でコンポーネントを切り替える例 (UI実装前の一時的なテスト用)
-        // 1キーで最初のコンポーネント、2キーで2番目のコンポーネント...
-        for (int i = 0; i < gardenComponents.Count; i++)
+        // キーボード入力のみをここで処理（マウス入力はGameManagerが管理）
+        HandleKeyboardInput();
+    }
+
+    /// <summary>
+    /// 現在このマネージャーがアクティブかどうかをチェック
+    /// </summary>
+    /// <returns>アクティブかどうか</returns>
+    private bool IsActiveMode()
+    {
+        return GameManager.Instance != null &&
+               GameManager.Instance.IsCurrentMode(GameMode.ComponentPlacement);
+    }
+
+    /// <summary>
+    /// キーボード入力を処理（GameManagerから呼び出される）
+    /// </summary>
+    public void HandleKeyboardInput()
+    {
+        // コンポーネント切り替え用のキー入力
+        for (int i = 0; i < gardenComponents.Count && i < 9; i++) // 最大9個まで
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1 + i)) // Alpha1はキーボードの1
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
                 SetSelectedComponent(i);
-                Debug.Log($"Selected component: {_selectedComponent.name}");
+                UnityEngine.Debug.Log($"Selected component: {_selectedComponent.name}");
             }
         }
+    }
+
+    /// <summary>
+    /// マウスクリック処理（GameManagerから呼び出される）
+    /// </summary>
+    public void HandleMouseClick()
+    {
+        if (!IsActiveMode()) return;
+        PlaceSelectedComponent();
     }
 
     /// <summary>
@@ -69,11 +94,11 @@ public class GardenBuilder : MonoBehaviour
         if (index >= 0 && index < gardenComponents.Count)
         {
             _selectedComponent = gardenComponents[index];
-            Debug.Log($"Selected component set to: {_selectedComponent.name}");
+            UnityEngine.Debug.Log($"Selected component set to: {_selectedComponent.name}");
         }
         else
         {
-            Debug.LogWarning("Invalid component index selected.");
+            UnityEngine.Debug.LogWarning($"Invalid component index selected: {index}");
         }
     }
 
@@ -84,13 +109,13 @@ public class GardenBuilder : MonoBehaviour
     {
         if (_selectedComponent == null || _selectedComponent.prefab == null)
         {
-            Debug.LogWarning("No component or prefab selected for placement.");
+            UnityEngine.Debug.LogWarning("No component or prefab selected for placement.");
             return;
         }
 
         if (_selectedComponent.currentCount >= _selectedComponent.maxCount)
         {
-            Debug.LogWarning($"Max count ({_selectedComponent.maxCount}) reached for {_selectedComponent.name}. Cannot place more.");
+            UnityEngine.Debug.LogWarning($"Max count ({_selectedComponent.maxCount}) reached for {_selectedComponent.name}. Cannot place more.");
             return;
         }
 
@@ -108,31 +133,59 @@ public class GardenBuilder : MonoBehaviour
             // 配置されたオブジェクトの数を更新
             _selectedComponent.currentCount++;
 
-            Debug.Log($"Placed {_selectedComponent.name} at {hit.point}. Current count: {_selectedComponent.currentCount}/{_selectedComponent.maxCount}");
+            UnityEngine.Debug.Log($"Placed {_selectedComponent.name} at {hit.point}. Current count: {_selectedComponent.currentCount}/{_selectedComponent.maxCount}");
         }
         else
         {
-            Debug.Log("No ground hit for placement.");
+            UnityEngine.Debug.Log("No ground hit for placement.");
         }
     }
 
-    // 将来的に配置されたオブジェクトを削除する機能などを追加する場合に備えて
+    /// <summary>
+    /// 配置されたコンポーネントを削除します
+    /// </summary>
+    /// <param name="componentToRemove">削除するオブジェクト</param>
     public void RemoveComponent(GameObject componentToRemove)
     {
-        // どのコンポーネントタイプか判別し、currentCountを減らすロジックが必要になる
-        // 例: componentToRemove.name から元のプレハブ名を推測し、gardenComponents リストを検索
-        // この例では簡略化のため、直接 currentCount を減らさない
+        // 実装時は適切なコンポーネント特定ロジックが必要
+        // 簡略化のため、直接削除のみ実行
         Destroy(componentToRemove);
-        Debug.Log($"Removed {componentToRemove.name}.");
+        UnityEngine.Debug.Log($"Removed {componentToRemove.name}.");
     }
 
-    // UIから呼び出すためのヘルパーメソッド (例: 配置数をリセットしたい場合)
+    /// <summary>
+    /// 全コンポーネントの配置数をリセット
+    /// </summary>
     public void ResetComponentCounts()
     {
         foreach (var comp in gardenComponents)
         {
             comp.currentCount = 0;
         }
-        Debug.Log("All component counts reset.");
+        UnityEngine.Debug.Log("All component counts reset.");
+    }
+
+    /// <summary>
+    /// 現在選択されているコンポーネントの情報を取得
+    /// </summary>
+    /// <returns>選択中のコンポーネント</returns>
+    public GardenComponent GetSelectedComponent()
+    {
+        return _selectedComponent;
+    }
+
+    /// <summary>
+    /// 指定したコンポーネントの配置可能数を取得
+    /// </summary>
+    /// <param name="index">コンポーネントのインデックス</param>
+    /// <returns>配置可能数（現在数/最大数）</returns>
+    public (int current, int max) GetComponentCount(int index)
+    {
+        if (index >= 0 && index < gardenComponents.Count)
+        {
+            var comp = gardenComponents[index];
+            return (comp.currentCount, comp.maxCount);
+        }
+        return (0, 0);
     }
 }

@@ -1,14 +1,13 @@
-// GameManager.cs - 新しい方針に合わせた修正版
+// GameManager.cs - 修正版
 using UnityEngine;
-using UnityEngine.UI; // UI要素を操作するために必要
+using UnityEngine.UI;
 
 public enum GameMode
 {
     None,
-    // SamanDrawing, // これを削除するか、使わないままにしておく（今回は削除推奨）
-    ComponentPlacement, // 岩や木などのコンポーネントを配置するモード
-    SamanTemplatePlacement, // 新しい砂紋テンプレート配置モード
-    SeasonSelection // 季節を選択するモード (今後追加)
+    ComponentPlacement,
+    SamanTemplatePlacement,
+    SeasonSelection
 }
 
 public class GameManager : MonoBehaviour
@@ -19,14 +18,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameMode currentMode = GameMode.ComponentPlacement;
 
     [Header("UI Elements (Assign in Inspector)")]
-    // public Button samanDrawingModeButton; // 削除する
     public Button componentPlacementModeButton;
-    public Button samanTemplatePlacementModeButton; // 新しい砂紋配置モード用のボタンを追加
+    public Button samanTemplatePlacementModeButton;
 
     [Header("Managers (Assign in Inspector)")]
-    // public SamanApplier samanApplier; // 削除する
     public GardenBuilder gardenBuilder;
-    public TemplanePlacement templanePlacement; // 新しいマネージャーへの参照
+    public TemplanePlacement templanePlacement;
 
     void Awake()
     {
@@ -48,14 +45,79 @@ public class GameManager : MonoBehaviour
         {
             componentPlacementModeButton.onClick.AddListener(() => SetMode(GameMode.ComponentPlacement));
         }
-        if (samanTemplatePlacementModeButton != null) // 新しいボタンの設定
+        if (samanTemplatePlacementModeButton != null)
         {
             samanTemplatePlacementModeButton.onClick.AddListener(() => SetMode(GameMode.SamanTemplatePlacement));
         }
 
-        // 初期モードに基づいて、各マネージャーの有効/無効を切り替える
+        // 初期状態を設定
         UpdateManagerActivity();
-        UpdateUIStates(); // UIの初期状態を更新
+        UpdateUIStates();
+    }
+
+    void Update()
+    {
+        // マウスクリック処理を一元化
+        HandleMouseInput();
+
+        // デバッグ用キー入力
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            SetMode(GameMode.SamanTemplatePlacement);
+        }
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            SetMode(GameMode.ComponentPlacement);
+        }
+    }
+
+    /// <summary>
+    /// マウス入力を一元管理し、現在のモードに応じて適切なマネージャーに処理を委譲
+    /// </summary>
+    private void HandleMouseInput()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            switch (currentMode)
+            {
+                case GameMode.ComponentPlacement:
+                    if (gardenBuilder != null && gardenBuilder.enabled)
+                    {
+                        gardenBuilder.HandleMouseClick();
+                    }
+                    break;
+
+                case GameMode.SamanTemplatePlacement:
+                    if (templanePlacement != null && templanePlacement.enabled)
+                    {
+                        templanePlacement.HandleMouseClick();
+                    }
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// キーボード入力を一元管理し、現在のモードに応じて適切なマネージャーに処理を委譲
+    /// </summary>
+    private void HandleKeyboardInput()
+    {
+        switch (currentMode)
+        {
+            case GameMode.ComponentPlacement:
+                if (gardenBuilder != null && gardenBuilder.enabled)
+                {
+                    gardenBuilder.HandleKeyboardInput();
+                }
+                break;
+
+            case GameMode.SamanTemplatePlacement:
+                if (templanePlacement != null && templanePlacement.enabled)
+                {
+                    templanePlacement.HandleKeyboardInput();
+                }
+                break;
+        }
     }
 
     public void SetMode(GameMode newMode)
@@ -74,48 +136,43 @@ public class GameManager : MonoBehaviour
         return currentMode;
     }
 
+    /// <summary>
+    /// 現在のモードに応じてマネージャーの有効/無効を切り替え
+    /// </summary>
     private void UpdateManagerActivity()
     {
-        // SamanApplierへの参照は削除済みなので、ここでコメントアウト/削除
-        // if (samanApplier != null) { samanApplier.enabled = (currentMode == GameMode.SamanDrawing); }
-
         if (gardenBuilder != null)
         {
             gardenBuilder.enabled = (currentMode == GameMode.ComponentPlacement);
         }
-        if (templanePlacement != null) // 新しいマネージャーの有効/無効
+        if (templanePlacement != null)
         {
             templanePlacement.enabled = (currentMode == GameMode.SamanTemplatePlacement);
         }
     }
 
+    /// <summary>
+    /// UIの状態を現在のモードに応じて更新
+    /// </summary>
     private void UpdateUIStates()
     {
-        // SamanDrawingModeButtonをSamanTemplatePlacementModeButtonに置き換えるので、古い参照は削除
-        // if (samanDrawingModeButton != null) { samanDrawingModeButton.interactable = (currentMode != GameMode.SamanDrawing); }
-
         if (componentPlacementModeButton != null)
         {
             componentPlacementModeButton.interactable = (currentMode != GameMode.ComponentPlacement);
-            //componentPlacementModeButton.GetComponent<Image>().color = (currentMode == GameMode.ComponentPlacement) ? Color.yellow : Color.white;
         }
-        if (samanTemplatePlacementModeButton != null) // 新しいボタンの状態更新
+        if (samanTemplatePlacementModeButton != null)
         {
             samanTemplatePlacementModeButton.interactable = (currentMode != GameMode.SamanTemplatePlacement);
-            //samanTemplatePlacementModeButton.GetComponent<Image>().color = (currentMode == GameMode.SamanTemplatePlacement) ? Color.yellow : Color.white;
         }
     }
 
-    // デバッグ用のキー入力（UI作成前の一時的なテスト用）
-    void Update()
+    /// <summary>
+    /// 現在アクティブなモードかどうかをチェック（各マネージャーが使用）
+    /// </summary>
+    /// <param name="mode">チェックするモード</param>
+    /// <returns>現在アクティブかどうか</returns>
+    public bool IsCurrentMode(GameMode mode)
     {
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            SetMode(GameMode.SamanTemplatePlacement); // F1キーを新しいモードに割り当てる
-        }
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            SetMode(GameMode.ComponentPlacement);
-        }
+        return currentMode == mode;
     }
 }

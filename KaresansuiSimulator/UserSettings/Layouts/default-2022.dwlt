@@ -245,8 +245,8 @@ MonoBehaviour:
     y: 0
     width: 651
     height: 646
-  m_MinSize: {x: 200, y: 200}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 202, y: 221}
+  m_MaxSize: {x: 4002, y: 4021}
   m_ActualView: {fileID: 13}
   m_Panes:
   - {fileID: 13}
@@ -298,8 +298,8 @@ MonoBehaviour:
     y: 0
     width: 498
     height: 939
-  m_MinSize: {x: 275, y: 50}
-  m_MaxSize: {x: 4000, y: 4000}
+  m_MinSize: {x: 276, y: 71}
+  m_MaxSize: {x: 4001, y: 4021}
   m_ActualView: {fileID: 21}
   m_Panes:
   - {fileID: 21}
@@ -443,7 +443,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: 30fbffff186300008a630000
+      m_ExpandedIDs: 30fbffff18630000a0630000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -849,9 +849,9 @@ MonoBehaviour:
   m_PlayAudio: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: -40.559, y: -5.276759, z: -30.979149}
+    m_Target: {x: -36.994785, y: -35.05056, z: -14.918082}
     speed: 2
-    m_Value: {x: -40.559, y: -5.276759, z: -30.979149}
+    m_Value: {x: -36.994785, y: -35.05056, z: -14.918082}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -897,13 +897,13 @@ MonoBehaviour:
     m_GridAxis: 1
     m_gridOpacity: 0
   m_Rotation:
-    m_Target: {x: 0.6008385, y: -0.014940482, z: 0.010754821, w: 0.7991666}
+    m_Target: {x: 0.5435103, y: 0.07352246, z: -0.048324417, w: 0.83478725}
     speed: 2
-    m_Value: {x: 0.60083455, y: -0.014940384, z: 0.01075475, w: 0.7991614}
+    m_Value: {x: 0.54350656, y: 0.07352196, z: -0.048324082, w: 0.83478147}
   m_Size:
-    m_Target: 27.573893
+    m_Target: 38.103386
     speed: 2
-    m_Value: 27.573893
+    m_Value: 38.103386
   m_Ortho:
     m_Target: 0
     speed: 2
@@ -2108,7 +2108,7 @@ MonoBehaviour:
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 95}
+    scrollPos: {x: 0, y: 111}
     m_SelectedIDs: 1a660000
     m_LastClickedID: 26138
     m_ExpandedIDs: 00000000e2650000e4650000e6650000e8650000ea650000ec650000ee650000f0650000f2650000f4650000f665000000ca9a3bffffff7f

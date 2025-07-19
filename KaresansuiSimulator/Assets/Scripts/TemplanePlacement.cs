@@ -10,7 +10,7 @@ public class TemplanePlacement : MonoBehaviour
         public string name;
         public GameObject prefab;
         [Header("Prefab Size Settings")]
-        public float prefabWorldSize = 10f; // プレハブの実際のワールドサイズ（デフォルトプレーンは10x10）
+        public float prefabWorldSize = 10f;
     }
 
     [Header("Placement Settings")]
@@ -24,7 +24,7 @@ public class TemplanePlacement : MonoBehaviour
 
     [Header("Rotation & Scale Settings")]
     public GameObject currentlySelectedTemplaneInScene;
-    public float[] allowedScales = { 1f, 2f, 3f }; // 実際のワールドサイズ（cellSizeに依存しない）
+    public float[] allowedScales = { 1f, 2f, 3f };
     private int currentScaleIndex = 0;
 
     private Dictionary<Vector2Int, GameObject> placedTemplanes = new Dictionary<Vector2Int, GameObject>();
@@ -45,12 +45,30 @@ public class TemplanePlacement : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            PlaceTemplane();
-        }
+        // GameManagerがアクティブでない場合は処理を停止
+        if (!IsActiveMode()) return;
 
-        for (int i = 0; i < samanTemplates.Count; i++)
+        // キーボード入力のみをここで処理（マウス入力はGameManagerが管理）
+        HandleKeyboardInput();
+    }
+
+    /// <summary>
+    /// 現在このマネージャーがアクティブかどうかをチェック
+    /// </summary>
+    /// <returns>アクティブかどうか</returns>
+    private bool IsActiveMode()
+    {
+        return GameManager.Instance != null &&
+               GameManager.Instance.IsCurrentMode(GameMode.SamanTemplatePlacement);
+    }
+
+    /// <summary>
+    /// キーボード入力を処理（GameManagerから呼び出される）
+    /// </summary>
+    public void HandleKeyboardInput()
+    {
+        // テンプレート選択
+        for (int i = 0; i < samanTemplates.Count && i < 9; i++) // 最大9個まで
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
@@ -58,6 +76,7 @@ public class TemplanePlacement : MonoBehaviour
             }
         }
 
+        // 回転・スケール・削除
         if (Input.GetKeyDown(KeyCode.R))
         {
             RotateSelectedTemplane();
@@ -72,7 +91,19 @@ public class TemplanePlacement : MonoBehaviour
         }
     }
 
-    void PlaceTemplane()
+    /// <summary>
+    /// マウスクリック処理（GameManagerから呼び出される）
+    /// </summary>
+    public void HandleMouseClick()
+    {
+        if (!IsActiveMode()) return;
+        PlaceTemplane();
+    }
+
+    /// <summary>
+    /// テンプレートを配置
+    /// </summary>
+    private void PlaceTemplane()
     {
         if (samanTemplates.Count == 0 || samanTemplates[currentTemplateIndex].prefab == null)
         {
@@ -94,6 +125,7 @@ public class TemplanePlacement : MonoBehaviour
             Vector3 worldPos = hit.point;
             Vector2Int gridCoords = WorldToGrid(worldPos);
 
+            // 既存のテンプレートがある場合は削除
             if (placedTemplanes.ContainsKey(gridCoords) && placedTemplanes[gridCoords] != null)
             {
                 Destroy(placedTemplanes[gridCoords]);
@@ -101,8 +133,8 @@ public class TemplanePlacement : MonoBehaviour
                 UnityEngine.Debug.Log($"TemplanePlacement: Replaced existing templane at {gridCoords}.");
             }
 
+            // 新しいテンプレートを配置
             GameObject newTemplane = Instantiate(samanTemplates[currentTemplateIndex].prefab);
-            // プレーンサイズをセルサイズ以下に制限
             float desiredWorldScale = Mathf.Min(allowedScales[currentScaleIndex], cellSize);
             newTemplane.transform.position = GridToWorld(gridCoords, desiredWorldScale);
             newTemplane.transform.SetParent(groundPlaneRenderer.transform);
@@ -132,21 +164,17 @@ public class TemplanePlacement : MonoBehaviour
     {
         Vector3 groundBottomLeft = groundPlaneRenderer.transform.position - groundPlaneRenderer.bounds.extents;
 
-        // グリッドセルの左下角の座標
         float cellMinX = groundBottomLeft.x + (gridCoords.x * cellSize);
         float cellMinZ = groundBottomLeft.z + (gridCoords.y * cellSize);
 
-        // プレーンがセル内に収まるように配置
         if (templateActualWorldScale <= cellSize)
         {
-            // プレーンがセルより小さい場合：セルの中心に配置
             float centerX = cellMinX + (cellSize / 2f);
             float centerZ = cellMinZ + (cellSize / 2f);
             return new Vector3(centerX, groundPlaneRenderer.transform.position.y + 0.001f, centerZ);
         }
         else
         {
-            // プレーンがセルより大きい場合：セルの左下角を基準に配置
             float centerX = cellMinX + (templateActualWorldScale / 2f);
             float centerZ = cellMinZ + (templateActualWorldScale / 2f);
             return new Vector3(centerX, groundPlaneRenderer.transform.position.y + 0.001f, centerZ);
@@ -184,10 +212,8 @@ public class TemplanePlacement : MonoBehaviour
         if (currentlySelectedTemplaneInScene != null)
         {
             currentScaleIndex = (currentScaleIndex + 1) % allowedScales.Length;
-            // 希望するサイズ（セルサイズ以下に制限）
             float newScale = Mathf.Min(allowedScales[currentScaleIndex], cellSize);
 
-            // プレハブの元のサイズを考慮したスケール計算
             float currentPrefabSize = samanTemplates[currentTemplateIndex].prefabWorldSize;
             float scaleRatio = newScale / currentPrefabSize;
             currentlySelectedTemplaneInScene.transform.localScale = new Vector3(scaleRatio, 1, scaleRatio);
@@ -223,31 +249,37 @@ public class TemplanePlacement : MonoBehaviour
     }
 
     /// <summary>
-    /// 修正版：プレハブの元のサイズを考慮したスケール適用（cellSizeに依存しない、セル内に収まるように制限）
+    /// プレハブの元のサイズを考慮したスケール適用
     /// </summary>
-    void ApplyCurrentRotationAndScale(GameObject targetTemplane)
+    private void ApplyCurrentRotationAndScale(GameObject targetTemplane)
     {
         if (targetTemplane == null) return;
 
         targetTemplane.transform.rotation = Quaternion.identity;
 
-        // 希望するワールドサイズ（セルサイズ以下に制限）
         float desiredWorldScale = Mathf.Min(allowedScales[currentScaleIndex], cellSize);
-
-        // プレハブの元のワールドサイズを取得
         float currentPrefabSize = samanTemplates[currentTemplateIndex].prefabWorldSize;
-
-        // スケール比率を計算：希望サイズ / 元のサイズ
         float scaleRatio = desiredWorldScale / currentPrefabSize;
 
-        // 計算されたスケール比率を適用
         targetTemplane.transform.localScale = new Vector3(scaleRatio, 1, scaleRatio);
 
-        // 位置をグリッドに合わせ直す
         Vector2Int currentGridCoords = WorldToGrid(targetTemplane.transform.position);
         targetTemplane.transform.position = GridToWorld(currentGridCoords, desiredWorldScale);
 
         UnityEngine.Debug.Log($"TemplanePlacement: Applied scale - Desired: {desiredWorldScale}, Prefab size: {currentPrefabSize}, Scale ratio: {scaleRatio}, Cell size: {cellSize}");
+    }
+
+    /// <summary>
+    /// 現在選択されているテンプレートの情報を取得
+    /// </summary>
+    /// <returns>選択中のテンプレート</returns>
+    public SamanTemplate GetCurrentTemplate()
+    {
+        if (currentTemplateIndex >= 0 && currentTemplateIndex < samanTemplates.Count)
+        {
+            return samanTemplates[currentTemplateIndex];
+        }
+        return null;
     }
 
     void OnDrawGizmos()
