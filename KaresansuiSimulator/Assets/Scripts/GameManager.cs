@@ -1,13 +1,15 @@
 // GameManager.cs - 修正版
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public enum GameMode
 {
     None,
     ComponentPlacement,
     SamanTemplatePlacement,
-    SeasonSelection
+    SeasonSelection,
+    CameraControl
 }
 
 public class GameManager : MonoBehaviour
@@ -20,10 +22,12 @@ public class GameManager : MonoBehaviour
     [Header("UI Elements (Assign in Inspector)")]
     public Button componentPlacementModeButton;
     public Button samanTemplatePlacementModeButton;
+    public Button cameraControlModeButton;
 
     [Header("Managers (Assign in Inspector)")]
     public GardenBuilder gardenBuilder;
     public TemplanePlacement templanePlacement;
+    public CameraControl cameraControl;
 
     void Awake()
     {
@@ -49,6 +53,11 @@ public class GameManager : MonoBehaviour
         {
             samanTemplatePlacementModeButton.onClick.AddListener(() => SetMode(GameMode.SamanTemplatePlacement));
         }
+        if (cameraControlModeButton != null)
+        {
+            cameraControlModeButton.onClick.AddListener(() => SetMode(GameMode.CameraControl));
+        }
+
 
         // 初期状態を設定
         UpdateManagerActivity();
@@ -60,6 +69,9 @@ public class GameManager : MonoBehaviour
         // マウスクリック処理を一元化
         HandleMouseInput();
 
+        // キーボード入力を一元管理
+        HandleKeyboardInput();
+
         // デバッグ用キー入力
         if (Input.GetKeyDown(KeyCode.F1))
         {
@@ -68,6 +80,10 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F2))
         {
             SetMode(GameMode.ComponentPlacement);
+        }
+        if (Input.GetKeyDown(KeyCode.F3)) 
+        {
+            SetMode(GameMode.CameraControl);
         }
     }
 
@@ -149,6 +165,19 @@ public class GameManager : MonoBehaviour
         {
             templanePlacement.enabled = (currentMode == GameMode.SamanTemplatePlacement);
         }
+        if (cameraControl != null)
+        {
+            // cameraControl.enabled = (currentMode == GameMode.CameraControl); // 直接 enabled を操作する代わりにカスタムメソッドを使用
+            if (currentMode == GameMode.CameraControl)
+            {
+                cameraControl.EnableCameraControl();
+            }
+            else
+            {
+                cameraControl.DisableCameraControl();
+            }
+        }
+
     }
 
     /// <summary>
@@ -164,6 +193,11 @@ public class GameManager : MonoBehaviour
         {
             samanTemplatePlacementModeButton.interactable = (currentMode != GameMode.SamanTemplatePlacement);
         }
+        if (cameraControlModeButton != null)
+        {
+            cameraControlModeButton.interactable = (currentMode != GameMode.CameraControl);
+        }
+
     }
 
     /// <summary>

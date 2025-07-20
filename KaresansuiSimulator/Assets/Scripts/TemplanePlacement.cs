@@ -1,6 +1,8 @@
-// TemplanePlacement.cs - 修正版
+// TemplanePlacement.cs - UI回転機能追加版
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 public class TemplanePlacement : MonoBehaviour
 {
@@ -11,6 +13,10 @@ public class TemplanePlacement : MonoBehaviour
         public GameObject prefab;
         [Header("Prefab Size Settings")]
         public float prefabWorldSize = 10f;
+        [Header("UI Display")]
+        public Sprite previewImage; // プレビュー用画像
+        [TextArea(2, 4)]
+        public string description = ""; // テンプレートの説明
     }
 
     [Header("Placement Settings")]
@@ -26,8 +32,29 @@ public class TemplanePlacement : MonoBehaviour
     public GameObject currentlySelectedTemplaneInScene;
     public float[] allowedScales = { 1f, 2f, 3f };
     private int currentScaleIndex = 0;
+    private float currentRotationY = 0f; // 現在の回転角度を追跡
+
+    [Header("UI Elements")]
+    [SerializeField] private Button rotateLeftButton;
+    [SerializeField] private Button rotateRightButton;
+    [SerializeField] private Button scaleButton;
+    [SerializeField] private Button deleteButton;
+    [SerializeField] private Image currentTemplatePreview;
+    [SerializeField] private TextMeshProUGUI currentTemplateNameText;         // TextからTextMeshProUGUIに変更
+    [SerializeField] private TextMeshProUGUI currentTemplateDescriptionText;  // TextからTextMeshProUGUIに変更
+    [SerializeField] private TextMeshProUGUI rotationAngleText;             // TextからTextMeshProUGUIに変更
+    [SerializeField] private TextMeshProUGUI scaleText;                     // TextからTextMeshProUGUIに変更
+
+    [Header("Template Selection UI")]
+    public List<Button> templateSelectionButtons; // 各テンプレート選択ボタンのリスト
+    public List<Text> templateNameTexts;          // 各テンプレート選択ボタンの子のテキスト
 
     private Dictionary<Vector2Int, GameObject> placedTemplanes = new Dictionary<Vector2Int, GameObject>();
+
+    void Start()
+    {
+        InitializeUI();
+    }
 
     void OnEnable()
     {
@@ -36,6 +63,7 @@ public class TemplanePlacement : MonoBehaviour
         {
             SetCurrentTemplate(0);
         }
+        UpdateUI();
     }
 
     void OnDisable()
@@ -48,8 +76,102 @@ public class TemplanePlacement : MonoBehaviour
         // GameManagerがアクティブでない場合は処理を停止
         if (!IsActiveMode()) return;
 
-        // キーボード入力のみをここで処理（マウス入力はGameManagerが管理）
+        // キーボード入力のみはここで処理（マウス入力はGameManagerが処理）
         HandleKeyboardInput();
+    }
+
+    /// <summary>
+    /// UI要素の初期化とイベントリスナーの設定
+    /// </summary>
+    private void InitializeUI()
+    {
+        // 回転ボタンのイベント設定
+        if (rotateLeftButton != null)
+            rotateLeftButton.onClick.AddListener(() => RotateTemplate(-90f));
+
+        if (rotateRightButton != null)
+            rotateRightButton.onClick.AddListener(() => RotateTemplate(90f));
+
+        // スケールボタンのイベント設定
+        if (scaleButton != null)
+            scaleButton.onClick.AddListener(ScaleSelectedTemplane);
+
+        // 削除ボタンのイベント設定
+        if (deleteButton != null)
+            deleteButton.onClick.AddListener(DeleteSelectedTemplane);
+
+        // テンプレート選択ボタンのイベント設定とテキスト初期化
+        for (int i = 0; i < templateSelectionButtons.Count; i++)
+        {
+            // クロージャの問題を避けるためにローカル変数にコピー
+            int index = i;
+
+            if (templateSelectionButtons[index] != null)
+            {
+                // ボタンがクリックされたら SetCurrentTemplate メソッドを呼び出す
+                templateSelectionButtons[index].onClick.AddListener(() => SetCurrentTemplate(index));
+
+                // 対応するテンプレートが存在し、テキスト要素が割り当てられている場合、ボタンのテキストを設定
+                if (index < samanTemplates.Count && templateNameTexts.Count > index && templateNameTexts[index] != null)
+                {
+                    templateNameTexts[index].text = samanTemplates[index].name;
+                }
+                else
+                {
+                    UnityEngine.Debug.LogWarning($"TemplanePlacement: Template button or text element not properly assigned or template missing for index {index}.");
+                }
+            }
+        }
+
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// UI表示を更新
+    /// </summary>
+    private void UpdateUI()
+    {
+        if (samanTemplates.Count == 0 || currentTemplateIndex < 0 || currentTemplateIndex >= samanTemplates.Count)
+            return;
+
+        var currentTemplate = samanTemplates[currentTemplateIndex];
+
+        // プレビュー画像の更新
+        if (currentTemplatePreview != null)
+        {
+            if (currentTemplate.previewImage != null)
+            {
+                currentTemplatePreview.sprite = currentTemplate.previewImage;
+                currentTemplatePreview.gameObject.SetActive(true);
+            }
+            else
+            {
+                currentTemplatePreview.gameObject.SetActive(false);
+            }
+        }
+
+        // テンプレート名の更新
+        if (currentTemplateNameText != null)
+            currentTemplateNameText.text = currentTemplate.name;
+
+        // テンプレート説明の更新
+        if (currentTemplateDescriptionText != null)
+            currentTemplateDescriptionText.text = currentTemplate.description;
+
+        // 回転角度の表示更新
+        if (rotationAngleText != null)
+            rotationAngleText.text = $"Rotation: {currentRotationY:F0}°";
+
+        // スケールの表示更新
+        if (scaleText != null)
+            scaleText.text = $"Scale: {allowedScales[currentScaleIndex]:F1}x";
+
+        // ボタンの有効/無効状態を更新
+        bool hasSelectedTemplate = currentlySelectedTemplaneInScene != null;
+        if (rotateLeftButton != null) rotateLeftButton.interactable = hasSelectedTemplate;
+        if (rotateRightButton != null) rotateRightButton.interactable = hasSelectedTemplate;
+        if (scaleButton != null) scaleButton.interactable = hasSelectedTemplate;
+        if (deleteButton != null) deleteButton.interactable = hasSelectedTemplate;
     }
 
     /// <summary>
@@ -76,10 +198,10 @@ public class TemplanePlacement : MonoBehaviour
             }
         }
 
-        // 回転・スケール・削除
+        // 回転・スケール・削除（既存の機能を維持）
         if (Input.GetKeyDown(KeyCode.R))
         {
-            RotateSelectedTemplane();
+            RotateTemplate(90f); // 既存の機能と統合
         }
         if (Input.GetKeyDown(KeyCode.S))
         {
@@ -98,6 +220,32 @@ public class TemplanePlacement : MonoBehaviour
     {
         if (!IsActiveMode()) return;
         PlaceTemplane();
+    }
+
+    /// <summary>
+    /// テンプレートを指定角度回転（UI用）
+    /// </summary>
+    /// <param name="angle">回転角度（度）</param>
+    public void RotateTemplate(float angle)
+    {
+        currentRotationY += angle;
+        currentRotationY = currentRotationY % 360f; // 0-360度の範囲に正規化
+
+        if (currentlySelectedTemplaneInScene != null)
+        {
+            currentlySelectedTemplaneInScene.transform.rotation = Quaternion.Euler(0, currentRotationY, 0);
+            UnityEngine.Debug.Log($"TemplanePlacement: Rotated template to {currentRotationY}°");
+        }
+
+        UpdateUI();
+    }
+
+    /// <summary>
+    /// 既存の回転機能（90度回転）- 下位互換性のために維持
+    /// </summary>
+    public void RotateSelectedTemplane()
+    {
+        RotateTemplate(90f);
     }
 
     /// <summary>
@@ -144,6 +292,8 @@ public class TemplanePlacement : MonoBehaviour
 
             placedTemplanes.Add(gridCoords, newTemplane);
             UnityEngine.Debug.Log($"TemplanePlacement: Placed '{samanTemplates[currentTemplateIndex].name}' at grid {gridCoords}.");
+
+            UpdateUI(); // UI状態を更新
         }
     }
 
@@ -186,24 +336,16 @@ public class TemplanePlacement : MonoBehaviour
         if (index >= 0 && index < samanTemplates.Count)
         {
             currentTemplateIndex = index;
+            // 新しいテンプレートを選択したら回転をリセット
+            currentRotationY = 0f;
+            currentScaleIndex = 0;
+
             UnityEngine.Debug.Log($"TemplanePlacement: Selected template: {samanTemplates[index].name}");
+            UpdateUI();
         }
         else
         {
             UnityEngine.Debug.LogWarning($"TemplanePlacement: Invalid template index {index}.");
-        }
-    }
-
-    public void RotateSelectedTemplane()
-    {
-        if (currentlySelectedTemplaneInScene != null)
-        {
-            currentlySelectedTemplaneInScene.transform.Rotate(0, 90, 0);
-            UnityEngine.Debug.Log($"TemplanePlacement: Rotated selected templane. New rotation: {currentlySelectedTemplaneInScene.transform.localEulerAngles.y}");
-        }
-        else
-        {
-            UnityEngine.Debug.LogWarning("TemplanePlacement: No templane selected in scene for rotation.");
         }
     }
 
@@ -212,16 +354,10 @@ public class TemplanePlacement : MonoBehaviour
         if (currentlySelectedTemplaneInScene != null)
         {
             currentScaleIndex = (currentScaleIndex + 1) % allowedScales.Length;
-            float newScale = Mathf.Min(allowedScales[currentScaleIndex], cellSize);
+            ApplyCurrentRotationAndScale(currentlySelectedTemplaneInScene);
 
-            float currentPrefabSize = samanTemplates[currentTemplateIndex].prefabWorldSize;
-            float scaleRatio = newScale / currentPrefabSize;
-            currentlySelectedTemplaneInScene.transform.localScale = new Vector3(scaleRatio, 1, scaleRatio);
-
-            Vector2Int currentGridCoords = WorldToGrid(currentlySelectedTemplaneInScene.transform.position);
-            currentlySelectedTemplaneInScene.transform.position = GridToWorld(currentGridCoords, newScale);
-
-            UnityEngine.Debug.Log($"TemplanePlacement: Scaled selected templane to {newScale}x{newScale} (scale ratio: {scaleRatio}), Cell size: {cellSize}");
+            UnityEngine.Debug.Log($"TemplanePlacement: Scaled to {allowedScales[currentScaleIndex]}x");
+            UpdateUI();
         }
         else
         {
@@ -241,6 +377,8 @@ public class TemplanePlacement : MonoBehaviour
             Destroy(currentlySelectedTemplaneInScene);
             currentlySelectedTemplaneInScene = null;
             UnityEngine.Debug.Log("TemplanePlacement: Deleted selected templane.");
+
+            UpdateUI(); // UI状態を更新
         }
         else
         {
@@ -255,8 +393,10 @@ public class TemplanePlacement : MonoBehaviour
     {
         if (targetTemplane == null) return;
 
-        targetTemplane.transform.rotation = Quaternion.identity;
+        // 回転を適用
+        targetTemplane.transform.rotation = Quaternion.Euler(0, currentRotationY, 0);
 
+        // スケールを適用
         float desiredWorldScale = Mathf.Min(allowedScales[currentScaleIndex], cellSize);
         float currentPrefabSize = samanTemplates[currentTemplateIndex].prefabWorldSize;
         float scaleRatio = desiredWorldScale / currentPrefabSize;
@@ -266,7 +406,7 @@ public class TemplanePlacement : MonoBehaviour
         Vector2Int currentGridCoords = WorldToGrid(targetTemplane.transform.position);
         targetTemplane.transform.position = GridToWorld(currentGridCoords, desiredWorldScale);
 
-        UnityEngine.Debug.Log($"TemplanePlacement: Applied scale - Desired: {desiredWorldScale}, Prefab size: {currentPrefabSize}, Scale ratio: {scaleRatio}, Cell size: {cellSize}");
+        UnityEngine.Debug.Log($"TemplanePlacement: Applied rotation {currentRotationY}° and scale {scaleRatio}");
     }
 
     /// <summary>
