@@ -14,7 +14,7 @@
 - ユーザーは8種類の砂紋を配置することができる．
 
 ## 実装フロー
-(https://github.com/user-attachments/assets/fea52505-84f3-471d-9eb6-add8e494a2e8)
+![実装フロー](https://github.com/user-attachments/assets/fea52505-84f3-471d-9eb6-add8e494a2e8)
 
 ## 遊び方
 ![画面の写真](https://github.com/user-attachments/assets/5e1502be-cd51-4f2d-94cb-e840318df982)
