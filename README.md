@@ -1,5 +1,5 @@
 # 枯山水シミュレーター
-(https://github.com/user-attachments/assets/befe18e8-e839-4cad-aab1-d6270a848ef1)
+![外観を挿入](https://github.com/user-attachments/assets/befe18e8-e839-4cad-aab1-d6270a848ef1)
 
 ## プロジェクトの概要
 
@@ -17,7 +17,7 @@
 (https://github.com/user-attachments/assets/fea52505-84f3-471d-9eb6-add8e494a2e8)
 
 ## 遊び方
-(https://github.com/user-attachments/assets/5e1502be-cd51-4f2d-94cb-e840318df982)
+![画面の写真](https://github.com/user-attachments/assets/5e1502be-cd51-4f2d-94cb-e840318df982)
 
 1. シーンを起動
 2. 砂紋モード
@@ -44,7 +44,7 @@
         W：前，A：左，S：後ろ，D：右
         
 ## 砂紋の種類
-(https://github.com/user-attachments/assets/29853c37-fe88-47f2-b9a3-d6a107facf6e)
+![砂紋の写真を挿入](https://github.com/user-attachments/assets/29853c37-fe88-47f2-b9a3-d6a107facf6e)
 
 使用する砂紋の種類は全部で8種類．すべて生成AIで作成した．１～５の模様は存在し，６～８は生成AIが独自に作成した．
 
