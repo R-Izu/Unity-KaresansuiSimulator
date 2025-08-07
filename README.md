@@ -1,23 +1,20 @@
 # 枯山水シミュレーター
-![外観を挿入](https://github.com/user-attachments/assets/befe18e8-e839-4cad-aab1-d6270a848ef1)
+<img width="768" height="432" alt="Image" src="https://github.com/user-attachments/assets/befe18e8-e839-4cad-aab1-d6270a848ef1"/><br>
 
-## プロジェクトの概要
+# プロジェクトの概要
 
-魅力的な空間を構成する**中庭．**
-枯山水には特有の砂の模様があり，模様には意味があるが抽象的で理解しづらいことがある．
-そこで枯山水の庭を自作する体験を通じて砂紋の意味を学べるゲームを提供する．
+魅力的な空間を構成する中庭．
+枯山水には特有の砂の模様があり，模様には意味があるが抽象的で理解しづらいことがある．  
+そこで枯山水の庭を自作する体験を通じて砂紋の意味を学べるゲームを提供する．<br><br>
 
-## システム概要
+# システム概要
 
 - 本システムはユーザーがUI（User Interface）で操作できる．
 - ユーザーは石や木などのコンポーネントを自由に配置することができる．
-- ユーザーは8種類の砂紋を配置することができる．
-
-## 実装フロー
-![実装フロー](https://github.com/user-attachments/assets/fea52505-84f3-471d-9eb6-add8e494a2e8)
+- ユーザーは8種類の砂紋を配置することができる．<br><br>
 
 ## 遊び方
-![画面の写真](https://github.com/user-attachments/assets/5e1502be-cd51-4f2d-94cb-e840318df982)
+<img width="768" height="432" alt="Image" src="https://github.com/user-attachments/assets/5e1502be-cd51-4f2d-94cb-e840318df982"/>
 
 1. シーンを起動
 2. 砂紋モード
@@ -41,10 +38,13 @@
     2. マウス操作で視点移動
     3. キーボード入力でカメラ移動
         
-        W：前，A：左，S：後ろ，D：右
-        
+        W：前，A：左，S：後ろ，D：右<br><br>
+
+## プレイ動画
+<img width="768" height="432" alt="Image" src="source/Karesansui_movie.gif "/><br><br>
+
 ## 砂紋の種類
-![砂紋の写真を挿入](https://github.com/user-attachments/assets/29853c37-fe88-47f2-b9a3-d6a107facf6e)
+<img width="768" height="432" alt="Image" src="https://github.com/user-attachments/assets/29853c37-fe88-47f2-b9a3-d6a107facf6e"/>
 
 使用する砂紋の種類は全部で8種類．すべて生成AIで作成した．１～５の模様は存在し，６～８は生成AIが独自に作成した．
 
@@ -52,8 +52,12 @@
 
 | 枯山水の砂の模様の種類を説明し，それぞれの砂の模様の画像を生成してほしい．作成した砂の模様はUnityのマテリアルのテクスチャとして使うため，利用しやすいようにそれぞれの砂利は共通のものとし，同じアングル（地面から1m程度離し，真上)から撮影したものとする |
 | --- |
+<br>
 
-## 開発環境
+# 実装フロー
+<img width="768" height="432" alt="Image" src="https://github.com/user-attachments/assets/fea52505-84f3-471d-9eb6-add8e494a2e8"/><br><br>
+
+# 開発環境
 
 | OS | Windows 11 |
 | --- | --- |
